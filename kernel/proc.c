@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "pstat.h"
+#include "rand.c"
 
 struct {
   struct spinlock lock;
@@ -46,17 +47,10 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  
-  /////// your code here//////////////////////////////
-  //initialize for all process the variable for number of tickets that you define in proc.h equal to 1
-  // initialize the number of times the process is scheudle in the cpu equal to 0
-  // p -> number of ticket =1
-  // p -> number of times schedule in the cpu =0
-  //get the names of these variables from proc.h 
-  /////////////////////////////////////////////////////
-
-
-
+  p->ticks = 0;
+  p->tickets = 10;
+  p->passvalue = 0;
+  p->stride = 10000/p->tickets;
   release(&ptable.lock);
 
   // Allocate kernel stack if possible.
@@ -165,14 +159,7 @@ fork(void)
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
  
-  ////your code here///// 
-  ////children inheritance the tickets from their parents//////
-  // proc is current process (i.e. parent)
-  ///np->number of tickets  = something like the parent -> number of tickets
-  ///get the exact the name fo number of tickets from proc.h the parent from the previous comment or some lines above
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-
-
+  np->tickets = proc->tickets;
  
   pid = np->pid;
   np->state = RUNNABLE;
@@ -287,33 +274,36 @@ scheduler(void)
 
   for(;;){
     // Enable interrupts on this processor.
-    
-    ////your code here  add variables///////////
-    //add variable for the winner of the lotery
-    // int lotteryWinner =0; 
-    // int totaltickets =0;
-    //add any other variable you need for program
-    ///////////////////////////////////////////// 
-   
+    int totalTickets = 0;
+    int counter = 0;
     sti();
-
-    
-    //////you can use it at any place //////////////////
     /// compute thetotalTickets
-    // call your random number generator ///
-    //int lotteryWinner = rand() % totalTickets + 1;
-    //////////////////////////////////////////////
 
- 
-    // Loop over process table looking for process to run.
+
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+      totalTickets += p->tickets; 
+    }
+
+    // call your random number generator ///
+    int rand_num = rand();
+    long lotteryWinner = rand_num % (1 + totalTickets);    
+  
+    // Loop over process table looking for process to run.
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      counter += p->tickets;
+      if(counter < lotteryWinner)
+        continue; 
+
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+      p->ticks++;
       proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -323,24 +313,24 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       proc = 0;
+      break;
     }
     release(&ptable.lock);
 
   }
 }
 
-/////////////// your code here  first system call //////////////////////////////////
-////Assign the tickets passed by the user to variable number of tickets of the process, 
-///check the name of this variable in proc.h
-///////////////////////////////////////////////////////////////////////////////////////
-//int assigntickets(int passTickets)
-//{
-	//make validation here, if you want 
+//Assign the tickets passed by the user to variable number of tickets of the process, 
+int assigntickets(int numTickets)
+{
+	if(numTickets < 0)
+    return -1;
 
-//	proc->variable ticket of the process  = passTickets;
-//	return 0;
-//}
-////////////////////////////////////////////////////////////////
+	proc->tickets = numTickets;
+  proc->stride = 10000/numTickets;
+	return 0;
+}
+
 
 
 
@@ -351,24 +341,23 @@ scheduler(void)
 //READ THE ELEMENTS OF PSTAT IN THE DESCRIPTION OF THE PROJECT TO MAKE SENSE OF THISsaveInfo(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int getpinfo(struct pstat* table)  //create a pointer able to point to object of the tpe pstat
+int getpinfo(struct pstat* table)  //create a pointer able to point to object of the type pstat
 {
 	struct proc *p;   //Create a pointer able to point to objects of the type proc (process) 
 	int i = 0; // used to iterate througt the slots of the arrays in pstat
 	acquire(&ptable.lock);  //lock the ptable (array containing the process) 
 	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){  // use p to iterate throght the ptable 
-		if(p->state == ZOMBIE || p->state == EMBRYO){  //check the state of a process, if it is different of ZOMBY and EMBRIO 
-			continue;
-		}
-		if(p->state == UNUSED){
-			table->inuse[i] = 0;  //check the name of the arrays in pstat. 
+		if(p->state == RUNNING){
+			table->inuse[i] = 1;
 		}
 		else{
-			table->inuse[i] = 1; 
+			table->inuse[i] = 0; 
 		}
-		table->pid[i] = p->pid ;//with the pid of the process p->
+		table->pid[i] = p->pid;//with the pid of the process p->
 		table->tickets[i] = p->tickets;//with the number of tickets
 		table->ticks[i] = p->ticks;//with the number of time the process has runned in the cpu
+    table->passvalue[i] = p->passvalue;
+    table->stride[i] = p->stride;
 		i++;
 	}
 	release(&ptable.lock);

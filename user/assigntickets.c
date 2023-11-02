@@ -16,6 +16,6 @@ int main()
         return -1;
        }
        else if (rc == 0)
-            assigntickets(i*5);      
+            assigntickets(i*10);      
     }
 }

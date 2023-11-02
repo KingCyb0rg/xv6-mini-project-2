@@ -273,22 +273,15 @@ scheduler(void)
 
   for(;;){
     // Enable interrupts on this processor.
-    
-    ////your code here  add variables///////////
-    //add variable for the winner of the lotery
-    // int lotteryWinner =0; 
-    // int totaltickets =0;
-    //add any other variable you need for program
-    ///////////////////////////////////////////// 
-   
+    int totalTickets = 0;
+    int counter = 0;
     sti();
-
-    
-    //////you can use it at any place //////////////////
     /// compute thetotalTickets
+    totalTickets += p->tickets;
     // call your random number generator ///
-    //int lotteryWinner = rand() % totalTickets + 1;
-    //////////////////////////////////////////////
+    int lotteryWinner = randomize(0, totalTickets);
+    
+
 
  
     // Loop over process table looking for process to run.
@@ -313,6 +306,11 @@ scheduler(void)
     release(&ptable.lock);
 
   }
+}
+
+randomize(int floor, int ceiling)
+{
+  return rand() % ceiling + floor;
 }
 
 

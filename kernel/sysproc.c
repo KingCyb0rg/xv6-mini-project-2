@@ -140,7 +140,7 @@ int
 sys_getpinfo(void)
 {
   struct pstat *pTable;
-  if(artptr(0, (void *)&pTable, sizeof(*pTable)) < 0){
+  if(argptr(0, (void *)&pTable, sizeof(*pTable)) < 0){
     return -1;
   }
   if(pTable == NULL){

@@ -76,11 +76,8 @@ struct proc {
   char name[16];               // Process name (debugging)
   int tickets;
   int ticks;
-  
-   /////// your code here///////
-  // add numtickest here
-  // add numticks here
-  /////////////////////////////
+  int passvalue;
+  int stride;
  
 };
 

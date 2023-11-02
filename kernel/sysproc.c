@@ -139,15 +139,13 @@ sys_uptime(void)
 int
 sys_getpinfo(void)
 {
-  struct pstat *pTable;
-  if(artptr(0, (void *)&pTable, sizeof(*pTable)) < 0){
-    return -1;
-  }
-  if(pTable == NULL){
-    return -1;
-  }
-  // pTable = NULL
-  // unsigned int number = (unsigned int)&pTable;
-  getpinfo(pTable);
+  struct pstat *pTable; //create a pointer able to point to objects of the type pstat//
+	if(argptr(0, (void *)&pTable, sizeof(*pTable)) < 0){ //this is the way to pass a pointer to an object as a parameter in sysproc.c, will pass this tickets in the experiment
+		return -1;  //validation
+	}
+	if(pTable == NULL){  //validation 
+		return -1;
+	}			
+	getpinfo(pTable);  //call the getpinf() in p
   return 0;
 }

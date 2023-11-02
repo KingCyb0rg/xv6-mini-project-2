@@ -46,17 +46,10 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  
-  /////// your code here//////////////////////////////
-  //initialize for all process the variable for number of tickets that you define in proc.h equal to 1
-  // initialize the number of times the process is scheudle in the cpu equal to 0
-  // p -> number of ticket =1
-  // p -> number of times schedule in the cpu =0
-  //get the names of these variables from proc.h 
-  /////////////////////////////////////////////////////
-
-
-
+  p->ticks = 0;
+  p->tickets = 10;
+  p->passvalue = 0;
+  p->stride = 10000/p->tickets;
   release(&ptable.lock);
 
   // Allocate kernel stack if possible.
@@ -165,14 +158,7 @@ fork(void)
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
  
-  ////your code here///// 
-  ////children inheritance the tickets from their parents//////
-  // proc is current process (i.e. parent)
-  ///np->number of tickets  = something like the parent -> number of tickets
-  ///get the exact the name fo number of tickets from proc.h the parent from the previous comment or some lines above
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-
-
+  np->tickets = proc->tickets;
  
   pid = np->pid;
   np->state = RUNNABLE;
@@ -333,13 +319,13 @@ scheduler(void)
 ////Assign the tickets passed by the user to variable number of tickets of the process, 
 ///check the name of this variable in proc.h
 ///////////////////////////////////////////////////////////////////////////////////////
-//int assigntickets(int passTickets)
-//{
-	//make validation here, if you want 
+// int assigntickets(int passTickets)
+// {
+// 	// make validation here, if you want 
 
-//	proc->variable ticket of the process  = passTickets;
-//	return 0;
-//}
+// 	proc->variable ticket of the process  = passTickets;
+// 	return 0;
+// }
 ////////////////////////////////////////////////////////////////
 
 
@@ -351,7 +337,7 @@ scheduler(void)
 //READ THE ELEMENTS OF PSTAT IN THE DESCRIPTION OF THE PROJECT TO MAKE SENSE OF THISsaveInfo(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int getpinfo(struct pstat* table)  //create a pointer able to point to object of the tpe pstat
+int getpinfo(struct pstat* table)  //create a pointer able to point to object of the type pstat
 {
 	struct proc *p;   //Create a pointer able to point to objects of the type proc (process) 
 	int i = 0; // used to iterate througt the slots of the arrays in pstat
@@ -366,9 +352,11 @@ int getpinfo(struct pstat* table)  //create a pointer able to point to object of
 		else{
 			table->inuse[i] = 1; 
 		}
-		table->pid[i] = p->pid ;//with the pid of the process p->
+		table->pid[i] = p->pid;//with the pid of the process p->
 		table->tickets[i] = p->tickets;//with the number of tickets
 		table->ticks[i] = p->ticks;//with the number of time the process has runned in the cpu
+    table->passvalue[i] = p->passvalue;
+    table->stride[i] = p->stride;
 		i++;
 	}
 	release(&ptable.lock);

@@ -19,7 +19,7 @@ int main()
        else if (rc == 0){
             assigntickets(i*10);
             for(;;)
-            p++;
+                p++;
        }
     }
     exit();

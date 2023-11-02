@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     {
         // if (!table.inuse[i])
         //     continue;
-        printf(1, "Use: %d   Tickets: %d   PID: %d   Ticks: %d   Strides: %d   Passvalue: %d\n", table.inuse[i], table.tickets, table.pid, table.ticks, table.stride, table.passvalue);
+        printf(1, "Use: %d   Tickets: %d   PID: %d   Ticks: %d   Strides: %d   Passvalue: %d\n", table.inuse[i], table.tickets[i], table.pid[i], table.ticks[i], table.stride[i], table.passvalue[i]);
     }
     exit();    
 }

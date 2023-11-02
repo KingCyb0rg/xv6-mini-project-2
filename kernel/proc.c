@@ -343,14 +343,11 @@ int getpinfo(struct pstat* table)  //create a pointer able to point to object of
 	int i = 0; // used to iterate througt the slots of the arrays in pstat
 	acquire(&ptable.lock);  //lock the ptable (array containing the process) 
 	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){  // use p to iterate throght the ptable 
-		if(p->state == ZOMBIE || p->state == EMBRYO){  //check the state of a process, if it is different of ZOMBY and EMBRIO 
-			continue;
-		}
-		if(p->state == UNUSED){
-			table->inuse[i] = 0;  //check the name of the arrays in pstat. 
+		if(p->state == RUNNING){
+			table->inuse[i] = 1;
 		}
 		else{
-			table->inuse[i] = 1; 
+			table->inuse[i] = 0; 
 		}
 		table->pid[i] = p->pid;//with the pid of the process p->
 		table->tickets[i] = p->tickets;//with the number of tickets

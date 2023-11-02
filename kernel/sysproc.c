@@ -146,6 +146,6 @@ sys_getpinfo(void)
 	if(pTable == NULL){  //validation 
 		return -1;
 	}			
-	getpinfo(pTable);  //call the getpinf() in p
+	getpinfo(pTable);  //call the getpinfo() in proc.c
   return 0;
 }

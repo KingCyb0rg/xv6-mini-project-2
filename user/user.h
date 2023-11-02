@@ -28,6 +28,8 @@ int sleep(int);
 int uptime(void);
 int cluis(void);
 int getpinfo(struct pstat*);
+int assigntickets(int);
+
 
 // user library functions (ulib.c)
 int stat(char*, struct stat*);

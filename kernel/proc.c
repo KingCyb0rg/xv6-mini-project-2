@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "pstat.h"
+#include "rand.c"
 
 struct {
   struct spinlock lock;
@@ -277,22 +278,32 @@ scheduler(void)
     int counter = 0;
     sti();
     /// compute thetotalTickets
-    totalTickets += p->tickets;
-    // call your random number generator ///
-    int lotteryWinner = randomize(0, totalTickets);
-    
 
 
- 
-    // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+      totalTickets += p->tickets; 
+    }
+
+    // call your random number generator ///
+    int rand_num = rand();
+    long lotteryWinner = rand_num % (1 + totalTickets);    
+  
+    // Loop over process table looking for process to run.
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      counter += p->tickets;
+      if(counter < lotteryWinner)
+        continue; 
+
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+      p->ticks++;
       proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -302,17 +313,12 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       proc = 0;
+      break;
     }
     release(&ptable.lock);
 
   }
 }
-
-randomize(int floor, int ceiling)
-{
-  return rand() % ceiling + floor;
-}
-
 
 //Assign the tickets passed by the user to variable number of tickets of the process, 
 int assigntickets(int numTickets)

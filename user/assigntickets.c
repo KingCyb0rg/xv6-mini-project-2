@@ -6,6 +6,7 @@
 int main()
 {
     int rc, i;
+    double p=0;
 
     for(i = 1; i<= 5; i++)
     {
@@ -15,7 +16,11 @@ int main()
         printf(1, "Fork failed\n");
         return -1;
        }
-       else if (rc == 0)
-            assigntickets(i*10);      
+       else if (rc == 0){
+            assigntickets(i*10);
+            for(;;)
+            p++;
+       }
     }
+    exit();
 }

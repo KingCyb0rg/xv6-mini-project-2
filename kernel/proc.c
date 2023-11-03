@@ -349,6 +349,7 @@ priority_scheduler(void)
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       p = highP;
+      p->ticks++;
       proc = p;
       switchuvm(p);
       p->state = RUNNING;

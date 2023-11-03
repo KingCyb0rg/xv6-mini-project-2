@@ -26,5 +26,7 @@
 #define SYS_cluis  22
 #define SYS_getpinfo 23
 #define SYS_assigntickets 24
+#define SYS_ps 25
+#define SYS_chpr 26
 
 #endif // _SYSCALL_H_

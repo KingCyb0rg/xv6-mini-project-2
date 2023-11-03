@@ -19,6 +19,8 @@ USER_PROGS := \
 	zombie\
 	readingpstat\
 	assigntickets\
+	ps\
+	prioritytest\
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 

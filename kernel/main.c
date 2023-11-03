@@ -85,7 +85,8 @@ static void
 mpmain(void)
 {
    cinit();
-   scheduler();     // start running processes
+   priority_scheduler(); // invoke priority scheduler
+   // scheduler();     // start running processes
 }
 
 // Start the non-boot processors.

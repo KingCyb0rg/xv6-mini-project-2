@@ -10,6 +10,7 @@ struct pstat {
     int ticks[NPROC]; // the number of ticks each process has accumulated
     int passvalue[NPROC];
     int stride[NPROC];
+    int priority[NPROC];
 };
 
 #endif // _PSTAT_H_

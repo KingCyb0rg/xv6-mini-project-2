@@ -78,6 +78,7 @@ struct proc {
   int ticks;
   int passvalue;
   int stride;
+  int priority;
  
 };
 

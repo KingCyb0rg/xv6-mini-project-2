@@ -127,3 +127,32 @@ sys_getpinfo(void)
 	getpinfo(pTable);  //call the getpinfo() in proc.c
   return 0;
 }
+
+int
+sys_ps(void)
+{
+  struct pstat *pTable; //create a pointer able to point to objects of the type pstat//
+	if(argptr(0, (void *)&pTable, sizeof(*pTable)) < 0){ //this is the way to pass a pointer to an object as a parameter in sysproc.c, will pass this tickets in the experiment
+		return -1;  //validation
+	}
+	if(pTable == NULL){  //validation 
+		return -1;
+	}
+  ps(pTable);
+  return 0;
+}
+
+int
+sys_chpr(void)
+{
+  int pid, pr;
+  if (argint(0, &pid) < 0)
+    return -1;
+  if(argint(1, &pr) < 0)
+    return -1;
+  
+  if(!(pr >= 0 && pr <= 200))
+    return -1;
+  
+  return chpr(pid, pr);
+}

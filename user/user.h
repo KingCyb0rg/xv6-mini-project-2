@@ -29,6 +29,8 @@ int uptime(void);
 int cluis(void);
 int getpinfo(struct pstat*);
 int assigntickets(int);
+int ps(struct pstat*);
+int chpr(int, int);
 
 
 // user library functions (ulib.c)

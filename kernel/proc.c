@@ -51,6 +51,7 @@ found:
   p->tickets = 10;
   p->passvalue = 0;
   p->stride = 10000/p->tickets;
+  p->priority = 50;
   release(&ptable.lock);
 
   // Allocate kernel stack if possible.
@@ -278,8 +279,6 @@ scheduler(void)
     int counter = 0;
     sti();
     /// compute thetotalTickets
-
-
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
@@ -317,6 +316,51 @@ scheduler(void)
     }
     release(&ptable.lock);
 
+  }
+}
+
+// alternative priority scheduler with round robin to reduce starvation
+void
+priority_scheduler(void)
+{
+  struct proc *p, *p1;
+  proc = 0;
+
+  for(;;){
+    // Enable interrupts
+    sti();
+    struct proc *highP;
+    // Loop over process table
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if (p->state != RUNNABLE)
+        continue;
+      
+      // Switch to chosen process
+      highP = p;
+      for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++){
+        if(p1->state != RUNNABLE)
+          continue;
+        if(highP->priority > p1->priority) // larger number means lower priority
+          highP = p1;
+      }
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      p = highP;
+      proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&cpu->scheduler, proc->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      proc = 0;
+      break;
+    }
+    release(&ptable.lock);
   }
 }
 
@@ -364,6 +408,48 @@ int getpinfo(struct pstat* table)  //create a pointer able to point to object of
 	return 0;	
 }
 
+// 
+int
+ps(struct pstat* table)
+{
+  struct proc *p;
+  int i = 0;
+  // Enable interrupts
+  sti();
+
+  // Loop over process table looking for process with pid.
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == RUNNING)
+      table->inuse[i] = 1;
+    else
+      table->inuse[i] = 0;
+
+    table->pid[i] = p->pid;
+    table->priority[i] = p->priority;
+    table->ticks[i] = p->ticks;
+    table->passvalue[i] = p->passvalue;
+    table->stride[i] = p->stride;
+    i++; 
+  }
+  release(&ptable.lock);
+  return 0;
+}
+
+int
+chpr(int pid, int priority)
+{
+  struct proc *p;
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if (p->pid == pid){
+      p->priority = priority;
+      break;
+    } 
+  }
+  release(&ptable.lock);
+  return pid;  
+}
 
 
 // Enter scheduler.  Must hold only ptable.lock
